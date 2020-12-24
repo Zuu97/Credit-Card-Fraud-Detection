@@ -5,10 +5,8 @@ from matplotlib import cm
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow as tf
-# from tensorflow import keras
-from tensorflow.keras.layers import Dense, Input, Dropout, BatchNormalization
-from tensorflow.keras.models import model_from_json, load_model
-from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Dense, Input, Dropout, BatchNormalization, Conv1D, GRU
+from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.optimizers import Adam
 
 import logging
@@ -16,9 +14,10 @@ logging.getLogger('tensorflow').disabled = True
 
 from variables import*
 from util import*
-'''  Use following command to run the script
-                python model.py
-'''
+
+physical_devices = tf.config.experimental.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
+
 class myCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs={}):
         if (logs.get('accuracy') > 0.9975):
@@ -27,12 +26,16 @@ class myCallback(tf.keras.callbacks.Callback):
 
 class FraudDetection(object):
     def __init__(self):
-        X, Y = get_data()
-        self.X = X
-        self.Y = Y
-        print("Input Shape : {}".format(self.X.shape))
-        print("Label Shape : {}".format(self.Y.shape))
-        print("No: of Output classes : {}".format(len(set(self.Y))))
+        if not os.path.exists(model_weights):
+            X, Xtest, Y, Ytest = load_data()
+            self.X = X
+            self.Y = Y
+            self.Xtest = Xtest
+            self.Ytest = Ytest
+            print("Train Input Shape : {}".format(self.X.shape))
+            print("Train Label Shape : {}".format(self.Y.shape))
+            print("Test  Input Shape : {}".format(self.Xtest.shape))
+            print("Test  Label Shape : {}".format(self.Ytest.shape))
 
     def classifier(self):
         n_features = self.X.shape[1]
@@ -70,6 +73,10 @@ class FraudDetection(object):
     def plot_metrics(self):
         loss_train = self.history.history['loss']
         loss_val = self.history.history['val_loss']
+
+        loss_train = np.cumsum(loss_train) / np.arange(1,num_epoches+1)
+        loss_val = np.cumsum(loss_val) / np.arange(1,num_epoches+1)
+
         plt.plot(np.arange(1,num_epoches+1), loss_train, 'r', label='Training loss')
         plt.plot(np.arange(1,num_epoches+1), loss_val, 'b', label='validation loss')
         plt.title('Training and Validation loss')
@@ -81,6 +88,10 @@ class FraudDetection(object):
 
         acc_train = self.history.history['accuracy']
         acc_val = self.history.history['val_accuracy']
+
+        acc_train = np.cumsum(acc_train) / np.arange(1,num_epoches+1)
+        acc_val = np.cumsum(acc_val) / np.arange(1,num_epoches+1)
+
         plt.plot(np.arange(1,num_epoches+1), acc_train, 'r', label='Training Accuracy')
         plt.plot(np.arange(1,num_epoches+1), acc_val, 'b', label='validation Accuracy')
         plt.title('Training and Validation Accuracy')
@@ -110,7 +121,3 @@ class FraudDetection(object):
             print("Training the model !!!")
             self.classifier()
             self.train()
-
-if __name__ == "__main__":
-    model = FraudDetection()
-    model.run()

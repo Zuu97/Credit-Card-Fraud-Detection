@@ -27,6 +27,7 @@ class InferenceModel(object):
         self.interpreter = tf.lite.Interpreter(model_path=model_converter)
         self.interpreter.allocate_tensors()
 
+        # Get Input and Output details
         self.input_details = self.interpreter.get_input_details()
         self.output_details = self.interpreter.get_output_details()
 

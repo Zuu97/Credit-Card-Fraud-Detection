@@ -7,17 +7,6 @@ dense2 = 512
 dense3 = 128
 dense4 = 64
 keep_prob = 0.3
-
-# 1Dcnn parameters
-imput_features = 28
-input_shape = (1, imput_features)
-conv1_cnn = 1200
-conv2_cnn = 400
-conv3_cnn = 400
-conv4_cnn = 200
-gru_cnn = 200
-keep_prob = 0.5
-
 num_classes = 1
 
 seed = 42
@@ -33,3 +22,7 @@ model_converter = "weights/fraud_detection.tflite"
 acc_img = "visualization/accuracy_comparison.png"
 loss_img = "visualization/loss_comparison.png"
 confusion_matrix_img = "visualization/confusion_matrix.png"
+class_dict = {
+            0 : "Non fradeulent",
+            1 : "fradeulent"
+            }
